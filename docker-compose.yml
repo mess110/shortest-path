@@ -1,0 +1,21 @@
+services:
+  server1:
+    image: neo4j:5.22.0
+    hostname: server1
+    environment:
+      NEO4J_AUTH: 'neo4j/neo4jneo4j'
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      # - ./neo4j.conf:/conf/neo4j.conf # This is the main configuration file.
+      - ./dockerfiles/neo4j/data/server1:/data
+      - ./dockerfiles/neo4j/logs/server1:/logs
+      - ./dockerfiles/neo4j/conf/server1:/conf
+      - ./dockerfiles/neo4j/import/server1:/import
+      #- ./metrics/server1:/metrics
+      #- ./licenses/server1:/licenses
+      #- ./ssl/server1:/ssl
+
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider localhost:7474 || exit 1"]
