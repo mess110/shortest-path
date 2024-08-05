@@ -1,4 +1,4 @@
-package connections
+package graphdb
 
 import (
 	"context"
@@ -7,7 +7,12 @@ import (
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
 
-func NewNeo4jConnection(ctx context.Context) (neo4j.DriverWithContext, error) {
+type GraphDB struct {
+	Ctx    context.Context
+	Driver neo4j.DriverWithContext
+}
+
+func NewConnection(ctx context.Context) (*GraphDB, error) {
 	dbUri := "neo4j://0.0.0.0"
 	dbUser := "neo4j"
 	dbPassword := "neo4jneo4j"
@@ -25,11 +30,16 @@ func NewNeo4jConnection(ctx context.Context) (neo4j.DriverWithContext, error) {
 	}
 	fmt.Println("Connection established.")
 
-	return driver, nil
+	graphDB := &GraphDB{
+		Driver: driver,
+		Ctx:    ctx,
+	}
+
+	return graphDB, nil
 }
 
-func Neo4jExecuteQuery(ctx context.Context, driver neo4j.DriverWithContext, query string, params map[string]any) (*neo4j.EagerResult, error) {
-	result, err := neo4j.ExecuteQuery(ctx, driver,
+func (g *GraphDB) ExecuteQuery(query string, params map[string]any) (*neo4j.EagerResult, error) {
+	result, err := neo4j.ExecuteQuery(g.Ctx, g.Driver,
 		query,
 		params,
 		neo4j.EagerResultTransformer,
@@ -39,4 +49,9 @@ func Neo4jExecuteQuery(ctx context.Context, driver neo4j.DriverWithContext, quer
 	}
 
 	return result, nil
+}
+
+func (g *GraphDB) Close() {
+	g.Driver.Close(g.Ctx)
+	fmt.Println("Connection closed.")
 }
